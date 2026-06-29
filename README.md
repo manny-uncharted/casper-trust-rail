@@ -1,0 +1,131 @@
+# Trust Rail — Autonomous RWA Oracle Agents on Casper
+
+> Casper Agentic Buildathon 2026 entry. **`@veridex/casper-trust-rail`**
+
+Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** — with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
+
+The reference asset is **tokenized US T-bill / treasury yields**, but the rail is asset-agnostic.
+
+```
+fetch → risk-assess → sanctions-screen → attest → post on-chain → confirm → (later) score → reputation
+```
+
+## Why this wins on the rubric
+
+| Judging criterion                 | How Trust Rail hits it                                                                                                                                                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Working smart contracts** | Three Odra contracts (`agent_identity`, `reputation`, `rwa_oracle`) deployed to testnet, with cross-contract reputation gating and Rust unit tests.                                                                      |
+| **Use of AI / Agentic**     | An autonomous loop: fetch → LLM+heuristic risk assessment → decide post/flag/escalate → attest → post → self-score. The LLM can only_raise_ risk severity, never lower the deterministic floor.                           |
+| **Innovation**              | Reputation-gated, attestation-bound RWA oracle. Each on-chain value carries the SHA-256 of the signed policy verdict that authorized it, a consumer can verify_why_ a number was posted, by whom, and with what track record. |
+| **Real-world (DeFi & RWA)** | Posts treasury yields a DeFi protocol can consume via a paid`consume` entry point; x402 makes it machine-to-machine commerce.                                                                                                |
+| **Technical execution**     | Self-contained, no private deps. 34 tests green, clean `tsc`, CJS+ESM+DTS build, full offline demo.                                                                                                                      |
+| **Long-term plans**         | Veridex is a real, pilot-ready product with socials, "we're bringing our agent trust rail to Casper" is a credible launch story, not a weekend throwaway.                                                                     |
+
+## Architecture
+
+```
+┌─────────────────────────── TrustRailAgent ──────────────────────────────┐
+│  TBillDataSource ──▶ RiskAssessor ──▶ Sanctions ──▶ PolicyAttestation   │
+│  (off-chain RWA)     (LLM+heuristic)  (fail-closed)  (signed verdict)   │
+│         └────────────────────────────────────────────────┐              │
+│                                                  CasperClient           │
+└────────────────────────────────────────────────────────┬────────────────┘
+                                                         │ casper-js-sdk / CSPR.cloud
+                       ┌─────────────────────────────────┼───────────────────────────┐
+                       ▼                                 ▼                           ▼
+              AgentIdentity (Odra)              Reputation (Odra)            RwaOracle (Odra)
+              register / owner_of               record_outcome / score_of   post_data_point / consume
+                                                          ▲                           │
+                                                          └────── reputation gate ◀────┘
+                                            x402: CasperX402Facilitator (/verify, /settle) for paid reads
+```
+
+### On-chain (`contracts/`, Odra / Rust)
+
+- **`agent_identity`** — binds a human-readable `agent_id` to the Casper account that controls it (verifiable identity).
+- **`reputation`** — accuracy score in basis points, moved by an authorized updater; starts neutral (5000).
+- **`rwa_oracle`** — accepts a data point only when the publisher is a registered, reputation-clearing agent; stores the value + `attestation_hash`; serves consumers via a free `latest` view and a paid `consume` entry point (the x402 target).
+
+### Off-chain (`src/`, TypeScript)
+
+- **`casper/`** — `CasperClient` over a `CasperRpc` transport. `MockCasperRpc` (offline/tests) and `RealCasperRpc` (`casper-js-sdk`, optional peer dep).
+- **`x402/`** — `CasperX402Facilitator` (`/supported`, `/verify`, `/settle`, `payAndFetch`) and `ExactPaymentSigner` (EIP-712 `exact`-scheme authorization).
+- **`oracle/`** — `TBillDataSource`, `RiskAssessor` (heuristic + optional LLM), `ReputationTracker`.
+- **`sanctions/`** — `StaticSanctionOracle` / `HttpSanctionOracle`, wrapped by the treasury kit's screener.
+- **`attestation/`** — ed25519 signer/verifier for the reused `PolicyAttestation`.
+- **`agent/`** — `TrustRailAgent`, the orchestration loop.
+
+## Trust primitives (original, self-contained)
+
+Two small primitives do the heavy lifting and are implemented natively in this
+repo — no external trust dependencies, fully exercised by tests:
+
+- **`src/attestation/postAttestation.ts`** → `PostAttestation` / `PostAttestationGuard` — a signed `allow` verdict bound to the exact value posted (SHA-256 over a canonical `PostIntent`). The intent hash is what we store on-chain as `attestation_hash`, so a value can be matched to the signed verdict that authorized it.
+- **`src/sanctions/screener.ts`** → `OracleSanctionScreener` — real-time, TTL-cached, **fail-closed** counterparty screening before any post.
+
+The design lineage is Veridex's production agent stack; the implementations here
+are original and Trust-Rail-scoped, so the repo builds anywhere with zero private
+dependencies.
+
+## Quick start
+
+```bash
+bun install
+bun run test          # 34 tests
+bun run lint          # tsc --noEmit, clean
+bun run demo          # full pipeline, offline against MockCasperRpc
+```
+
+`bun run demo` output (abridged):
+
+```
+=== 2. Run the oracle pipeline (fetch -> assess -> screen -> attest -> post) ===
+   - risk: post (0) — within band, deviation and freshness nominal
+   - sanctions: clear (oracle[static-denylist])
+   - posted: mock0000...
+   posted value: 5310000 (5.31% x 1e6)
+   attestation hash (on-chain): eb41b80cb8dd8c04708c4b48aa15456ffe6e135d1...
+```
+
+## Deploy to testnet
+
+```bash
+# 1. Build + test the contracts (needs the Rust toolchain + cargo-odra)
+cargo install cargo-odra
+cd contracts && cargo odra test && cargo odra build      # -> wasm/*.wasm
+
+# 2. Deploy each wasm and note the contract hashes (casper-client put-deploy
+#    or cargo-odra livenet). Wire AgentIdentity + Reputation into RwaOracle's init.
+
+# 3. Fund the agent key from the testnet faucet, then drive the agent:
+export CASPER_NODE_URL=https://node.testnet.cspr.cloud/rpc
+export CASPER_SECRET_KEY_PEM=./keys/secret_key.pem
+export TRUSTRAIL_IDENTITY_HASH=hash-...
+export TRUSTRAIL_REPUTATION_HASH=hash-...
+export TRUSTRAIL_ORACLE_HASH=hash-...
+export TRUSTRAIL_PAYTO=account-hash-...
+bun add casper-js-sdk
+bun run testnet        # registers identity + posts one attested data point on testnet
+```
+
+The single `post_data_point` deploy satisfies the buildathon's
+**transaction-producing on-chain component** requirement.
+
+## x402 pay-per-read
+
+Downstream consumers pay per oracle read via the CSPR.cloud x402 Facilitator
+(`https://x402-facilitator.cspr.cloud`). `CasperX402Facilitator.payAndFetch`
+handles the `402 → sign exact-scheme authorization → retry with X-PAYMENT` flow;
+`/settle` returns the on-chain settlement hash. Buildathon teams get sponsored
+facilitator usage. Wire-compatible with [`make-software/casper-x402`](https://github.com/make-software/casper-x402).
+
+## Status & notes
+
+- **34 tests pass; `tsc --noEmit` is clean; tsup build (CJS+ESM+DTS) succeeds.**
+- `casper-js-sdk` is an **optional peer dependency** reached only through one facade module (`src/casper/casperSdkFacade.ts`) — the single place to reconcile with your installed SDK major. Everything else runs without it.
+- The Odra contracts target Odra 1.4+ and are tested with `cargo odra test`.
+- No private/`@veridex` dependencies — `bun install && bun run test` works on a fresh clone.
+
+## License
+
+MIT

@@ -1,0 +1,12 @@
+# cargo-odra contract manifest.
+# `cargo odra build` produces a .wasm per contract under wasm/.
+# `cargo odra test` runs the Rust tests against the Odra MockVM, then the Casper VM.
+
+[[contracts]]
+fqn = "casper_trust_rail_contracts::AgentIdentity"
+
+[[contracts]]
+fqn = "casper_trust_rail_contracts::Reputation"
+
+[[contracts]]
+fqn = "casper_trust_rail_contracts::RwaOracle"

@@ -1,0 +1,20 @@
+[package]
+name = "casper-trust-rail-contracts"
+version = "0.1.0"
+edition = "2021"
+description = "Trust Rail on-chain contracts for Casper: agent identity, reputation, and the RWA oracle."
+license = "MIT"
+
+[dependencies]
+odra = { version = "1.4.0", default-features = false }
+
+[dev-dependencies]
+odra-test = "1.4.0"
+
+[lib]
+crate-type = ["rlib"]
+doctest = false
+
+[profile.release]
+codegen-units = 1
+lto = true

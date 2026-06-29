@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+.pnp.*
+.yarn/*
+
+# build output
+dist/
+*.tsbuildinfo
+
+# rust / odra
+contracts/target/
+contracts/wasm/
+contracts/Cargo.lock
+
+# env & keys
+.env
+.env.*
+!.env.example
+keys/
+*.pem
+
+# logs & os
+*.log
+.DS_Store
+
+# lockfiles (this is a buildathon sample; let consumers resolve)
+bun.lockb

@@ -1,0 +1,71 @@
+{
+  "name": "casper-trust-rail",
+  "version": "0.1.0",
+  "description": "Trust Rail — autonomous RWA oracle agents on Casper. On-chain identity + accuracy-based reputation, sanctions-screened and cryptographically attested data posts, settled via Casper-native x402. Casper Agentic Buildathon 2026.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "contracts",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "demo": "bun run scripts/run-demo.ts",
+    "testnet": "bun run scripts/run-testnet.ts",
+    "contracts:build": "cd contracts && cargo odra build",
+    "contracts:test": "cd contracts && cargo odra test"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "casper-js-sdk": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "casper-js-sdk": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "keywords": [
+    "casper",
+    "casper-network",
+    "x402",
+    "rwa",
+    "oracle",
+    "ai-agent",
+    "agentic",
+    "defi",
+    "odra"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manny-uncharted/casper-trust-rail.git"
+  },
+  "homepage": "https://github.com/manny-uncharted/casper-trust-rail#readme",
+  "bugs": {
+    "url": "https://github.com/manny-uncharted/casper-trust-rail/issues"
+  },
+  "license": "MIT",
+  "author": "manny-uncharted",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
