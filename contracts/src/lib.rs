@@ -23,5 +23,12 @@ mod reputation;
 mod rwa_oracle;
 
 pub use agent_identity::{AgentIdentity, IdentityError};
-pub use reputation::{Reputation, ReputationError, ReputationInitArgs};
-pub use rwa_oracle::{FeedPoint, OracleError, RwaOracle, RwaOracleInitArgs};
+pub use reputation::{Reputation, ReputationError};
+pub use rwa_oracle::{FeedPoint, OracleError, RwaOracle};
+
+// `*InitArgs` are generated only for the host/test build (used by `Deployer::deploy`
+// and the livenet deploy binary), not for the on-chain wasm target.
+#[cfg(not(target_arch = "wasm32"))]
+pub use reputation::ReputationInitArgs;
+#[cfg(not(target_arch = "wasm32"))]
+pub use rwa_oracle::RwaOracleInitArgs;

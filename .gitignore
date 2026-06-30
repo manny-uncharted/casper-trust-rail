@@ -11,6 +11,8 @@ dist/
 contracts/target/
 contracts/wasm/
 contracts/Cargo.lock
+contracts/.backend*
+contracts/.builder*
 
 # env & keys
 .env

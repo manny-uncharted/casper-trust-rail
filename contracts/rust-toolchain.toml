@@ -1,7 +1,7 @@
-# Odra's proc-macros use nightly-only features (box_patterns, result_flattening),
-# so the contracts must be built with a nightly toolchain. rustup reads this file
-# automatically and installs the channel + wasm target on first build.
+# Odra's proc-macros need nightly, and Casper's wasm host imports only link
+# cleanly on the Odra-sanctioned nightly (newer rust-lld errors on the undefined
+# `casper_*` import symbols). Pin the date Odra ships with. rustup reads this
+# file automatically and installs the channel + wasm target on first build.
 [toolchain]
-channel = "nightly"
+channel = "nightly-2026-01-01"
 targets = ["wasm32-unknown-unknown"]
-components = ["rustfmt", "clippy"]

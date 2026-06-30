@@ -43,8 +43,8 @@ fn main() {
     let oracle = RwaOracle::deploy(
         &env,
         RwaOracleInitArgs {
-            identity_contract: *identity.address(),
-            reputation_contract: *reputation.address(),
+            identity_contract: identity.address(),
+            reputation_contract: reputation.address(),
             min_reputation_bps: MIN_REPUTATION_BPS,
         },
     );

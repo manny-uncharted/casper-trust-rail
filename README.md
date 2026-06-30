@@ -126,7 +126,7 @@ facilitator usage. Wire-compatible with [`make-software/casper-x402`](https://gi
 
 - **34 tests pass; `tsc --noEmit` is clean; tsup build (CJS+ESM+DTS) succeeds.**
 - `casper-js-sdk` is an **optional peer dependency** reached only through one facade module (`src/casper/casperSdkFacade.ts`) — the single place to reconcile with your installed SDK major. Everything else runs without it.
-- The Odra contracts target Odra 1.4+ and are tested with `cargo odra test`.
+- The Odra contracts target Odra 2.8 (nightly toolchain, pinned via `contracts/rust-toolchain.toml`) and pass `cargo odra test` (9 tests).
 - No private/`@veridex` dependencies — `bun install && bun run test` works on a fresh clone.
 
 ## License
