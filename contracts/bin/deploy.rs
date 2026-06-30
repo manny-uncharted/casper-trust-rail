@@ -29,17 +29,17 @@ fn main() {
     let operator = env.caller();
 
     // --- AgentIdentity ---
-    env.set_gas(150_000_000_000u64); // 150 CSPR; tune per network conditions.
+    env.set_gas(600_000_000_000u64); // 150 CSPR; tune per network conditions.
     let identity = AgentIdentity::deploy(&env, NoArgs);
     println!("AgentIdentity deployed: {}", identity.contract_address().to_string());
 
     // --- Reputation (operator is the authorized outcome updater) ---
-    env.set_gas(150_000_000_000u64);
+    env.set_gas(600_000_000_000u64);
     let reputation = Reputation::deploy(&env, ReputationInitArgs { updater: operator });
     println!("Reputation   deployed: {}", reputation.contract_address().to_string());
 
     // --- RwaOracle (wired to the two above) ---
-    env.set_gas(200_000_000_000u64);
+    env.set_gas(600_000_000_000u64);
     let oracle = RwaOracle::deploy(
         &env,
         RwaOracleInitArgs {

@@ -6,6 +6,9 @@
 
 > Casper Agentic Buildathon 2026 entry. **`casper-trust-rail`**
 
+**✅ Live on Casper testnet** — all three contracts deployed (`casper-test`). Addresses + explorer transactions in **[DEPLOYED.md](DEPLOYED.md)**:
+`AgentIdentity` `hash-50de6c75…03de` · `Reputation` `hash-d66a18fa…27ba` · `RwaOracle` `hash-7a131614…514b`
+
 Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
 
 The reference asset is **tokenized US T-bill / treasury yields**, but the rail is asset-agnostic.
