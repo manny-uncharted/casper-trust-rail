@@ -31,27 +31,27 @@ fn main() {
     // --- AgentIdentity ---
     env.set_gas(150_000_000_000u64); // 150 CSPR; tune per network conditions.
     let identity = AgentIdentity::deploy(&env, NoArgs);
-    println!("AgentIdentity deployed: {}", identity.address().to_string());
+    println!("AgentIdentity deployed: {}", identity.contract_address().to_string());
 
     // --- Reputation (operator is the authorized outcome updater) ---
     env.set_gas(150_000_000_000u64);
     let reputation = Reputation::deploy(&env, ReputationInitArgs { updater: operator });
-    println!("Reputation   deployed: {}", reputation.address().to_string());
+    println!("Reputation   deployed: {}", reputation.contract_address().to_string());
 
     // --- RwaOracle (wired to the two above) ---
     env.set_gas(200_000_000_000u64);
     let oracle = RwaOracle::deploy(
         &env,
         RwaOracleInitArgs {
-            identity_contract: identity.address(),
-            reputation_contract: reputation.address(),
+            identity_contract: identity.contract_address(),
+            reputation_contract: reputation.contract_address(),
             min_reputation_bps: MIN_REPUTATION_BPS,
         },
     );
-    println!("RwaOracle    deployed: {}", oracle.address().to_string());
+    println!("RwaOracle    deployed: {}", oracle.contract_address().to_string());
 
     println!("\n# Paste into .env:");
-    println!("TRUSTRAIL_IDENTITY_HASH={}", identity.address().to_string());
-    println!("TRUSTRAIL_REPUTATION_HASH={}", reputation.address().to_string());
-    println!("TRUSTRAIL_ORACLE_HASH={}", oracle.address().to_string());
+    println!("TRUSTRAIL_IDENTITY_HASH={}", identity.contract_address().to_string());
+    println!("TRUSTRAIL_REPUTATION_HASH={}", reputation.contract_address().to_string());
+    println!("TRUSTRAIL_ORACLE_HASH={}", oracle.contract_address().to_string());
 }
