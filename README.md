@@ -6,7 +6,7 @@
 
 > Casper Agentic Buildathon 2026 entry. **`casper-trust-rail`**
 
-**✅ Live on Casper testnet** — all three contracts deployed (`casper-test`). Addresses + explorer transactions in **[DEPLOYED.md](DEPLOYED.md)**:
+**✅ Live on Casper testnet** all three contracts deployed (`casper-test`). Addresses + explorer transactions in **[DEPLOYED.md](DEPLOYED.md)**:
 `AgentIdentity` `hash-50de6c75…03de` · `Reputation` `hash-d66a18fa…27ba` · `RwaOracle` `hash-7a131614…514b`
 
 Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
@@ -65,14 +65,11 @@ fetch → risk-assess → sanctions-screen → attest → post on-chain → conf
 ## Trust primitives (original, self-contained)
 
 Two small primitives do the heavy lifting and are implemented natively in this
-repo — no external trust dependencies, fully exercised by tests:
+repo no external trust dependencies, fully exercised by tests:
 
 - **`src/attestation/postAttestation.ts`** → `PostAttestation` / `PostAttestationGuard` a signed `allow` verdict bound to the exact value posted (SHA-256 over a canonical `PostIntent`). The intent hash is what we store on-chain as `attestation_hash`, so a value can be matched to the signed verdict that authorized it.
 - **`src/sanctions/screener.ts`** → `OracleSanctionScreener` real-time, TTL-cached, **fail-closed** counterparty screening before any post.
 
-The design lineage is Veridex's production agent stack; the implementations here
-are original and Trust-Rail-scoped, so the repo builds anywhere with zero private
-dependencies.
 
 ## Quick start
 
@@ -143,12 +140,6 @@ handles the `402 → sign exact-scheme authorization → retry with X-PAYMENT` f
 `/settle` returns the on-chain settlement hash. Buildathon teams get sponsored
 facilitator usage. Wire-compatible with [`make-software/casper-x402`](https://github.com/make-software/casper-x402).
 
-## Status & notes
-
-- **34 tests pass; `tsc --noEmit` is clean; tsup build (CJS+ESM+DTS) succeeds.**
-- `casper-js-sdk` is an **optional peer dependency** reached only through one facade module (`src/casper/casperSdkFacade.ts`) — the single place to reconcile with your installed SDK major. Everything else runs without it.
-- The Odra contracts target Odra 2.8 (nightly toolchain, pinned via `contracts/rust-toolchain.toml`) and pass `cargo odra test` (9 tests).
-- No private/`@veridex` dependencies — `bun install && bun run test` works on a fresh clone.
 
 ## License
 

@@ -27,3 +27,4 @@ keys/
 
 # lockfiles (this is a buildathon sample; let consumers resolve)
 bun.lockb
+DEMO.md
