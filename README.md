@@ -21,7 +21,7 @@ fetch → risk-assess → sanctions-screen → attest → post on-chain → conf
 
 | Judging criterion                 | How Trust Rail hits it                                                                                                                                                                                                         |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Working smart contracts** | Three Odra contracts (`agent_identity`, `reputation`, `rwa_oracle`) deployed to testnet, with cross-contract reputation gating and Rust unit tests.                                                                      |
+| **Working smart contracts** | Three Odra contracts (`agent_identity`, `reputation`, `rwa_oracle`) **live on Casper testnet** ([addresses + txs](DEPLOYED.md)), with cross-contract reputation gating and 9 passing Rust unit tests.                                                                      |
 | **Use of AI / Agentic**     | An autonomous loop: fetch → LLM+heuristic risk assessment → decide post/flag/escalate → attest → post → self-score. The LLM can only_raise_ risk severity, never lower the deterministic floor.                           |
 | **Innovation**              | Reputation-gated, attestation-bound RWA oracle. Each on-chain value carries the SHA-256 of the signed policy verdict that authorized it, a consumer can verify_why_ a number was posted, by whom, and with what track record. |
 | **Real-world (DeFi & RWA)** | Posts treasury yields a DeFi protocol can consume via a paid`consume` entry point; x402 makes it machine-to-machine commerce.                                                                                                |
@@ -93,6 +93,18 @@ bun run demo          # full pipeline, offline against MockCasperRpc
    posted value: 5310000 (5.31% x 1e6)
    attestation hash (on-chain): eb41b80cb8dd8c04708c4b48aa15456ffe6e135d1...
 ```
+
+## Live deployment (Casper testnet)
+
+All three contracts are **deployed and live** on `casper-test` (Casper 2.0), wired
+together at deploy time (the `RwaOracle` holds the `AgentIdentity` + `Reputation`
+addresses for its on-chain reputation gate). Full details in **[DEPLOYED.md](DEPLOYED.md)**.
+
+| Contract | Address (contract package hash) | Deploy transaction |
+|---|---|---|
+| **AgentIdentity** | `hash-50de6c7535ef4196db67904a7c5a6fa5a1d56199e6100edd8c7b042fdf0b03de` | [view ↗](https://testnet.cspr.live/transaction/eb1521e80154f3e6f80b8f93a71c6fbc92b6acf3d2147eb435f82852d2d2f647) |
+| **Reputation** | `hash-d66a18fa40dfc17e199bcbde6aff02ade40ffd4fd1b8adfe022c1ba5145427ba` | [view ↗](https://testnet.cspr.live/transaction/c0a4e255437371a7bee458ed7fb87d49590817d68f146748da3940d3d6f6a4bc) |
+| **RwaOracle** | `hash-7a1316142309897f674c5be6c86ac3dfa21869c79aa59738716ac480fdee514b` | [view ↗](https://testnet.cspr.live/transaction/07a7eee25eb6bc2aca57ab4ff9a54004e082d066383d851b8cd9abccb494d83c) |
 
 ## Deploy to testnet
 
