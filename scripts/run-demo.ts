@@ -42,7 +42,8 @@ async function main(): Promise<void> {
       feedId: 'us-3m-tbill',
       label: 'US 3-Month T-Bill',
       ratePercent: 5.31,
-      asOf: new Date().toISOString(),
+      // A published yield is "as of" a prior close, not the current instant.
+      asOf: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
       source: 'US Treasury Daily Par Yield Curve',
     },
   ]);

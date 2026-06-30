@@ -163,10 +163,15 @@ function rank(d: RiskDecision): number {
 }
 
 function buildPrompt(o: TBillObservation, c: RiskContext, base: RiskAssessment): string {
+  const nowIso = new Date(c.now).toISOString();
   return [
     'You are a risk officer validating a real-world-asset data point before it is posted on-chain.',
+    // Anchor "now" explicitly: the model's training cutoff may predate the current
+    // date, so judge freshness against this timestamp, not your prior assumptions.
+    `Current date/time (treat as authoritative "now"): ${nowIso}.`,
     `Feed: ${o.feedId} (${o.label})`,
     `Proposed rate: ${o.ratePercent}% as of ${o.asOf}, source "${o.source}".`,
+    'An "as of" at or shortly before the current time is normal for a published yield; only a timestamp AFTER now is suspect.',
     c.previousRatePercent !== undefined ? `Previous posted rate: ${c.previousRatePercent}%.` : 'No prior value.',
     `Deterministic pre-check: decision=${base.decision}, risk=${base.riskScore}, reasons=${base.reasons.join('; ')}.`,
     'Reply as JSON: {"decision":"post|flag|escalate","riskScore":0..1,"rationale":"..."}.',

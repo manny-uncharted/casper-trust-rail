@@ -31,14 +31,10 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "casper-js-sdk": "^5.0.0",
-    "@google/genai": ">=1.0.0"
+    "casper-js-sdk": "^5.0.0"
   },
   "peerDependenciesMeta": {
     "casper-js-sdk": {
-      "optional": true
-    },
-    "@google/genai": {
       "optional": true
     }
   },
@@ -71,5 +67,8 @@
   "author": "manny-uncharted",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "optionalDependencies": {
+    "@google/genai": ">=1.0.0"
   }
 }
