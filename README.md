@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="./assets/logo.svg" alt="Trust Rail — Autonomous RWA oracle agents on Casper" width="620"/>
+  <img src="./assets/logo.svg" alt="Trust Rail: Autonomous RWA oracle agents on Casper" width="620"/>
 </p>
 
-<h1 align="center">Trust Rail — Autonomous RWA Oracle Agents on Casper</h1>
+<h1 align="center">Trust Rail: Autonomous RWA Oracle Agents on Casper</h1>
 
 > Casper Agentic Buildathon 2026 entry. **`casper-trust-rail`**
 
-Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** — with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
+Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
 
 The reference asset is **tokenized US T-bill / treasury yields**, but the rail is asset-agnostic.
 
@@ -57,15 +57,15 @@ fetch → risk-assess → sanctions-screen → attest → post on-chain → conf
 - **`oracle/`** — `TBillDataSource`, `RiskAssessor` (heuristic + optional LLM), `ReputationTracker`.
 - **`sanctions/`** — `StaticSanctionOracle` / `HttpSanctionOracle`, wrapped by the treasury kit's screener.
 - **`attestation/`** — ed25519 signer/verifier for the reused `PolicyAttestation`.
-- **`agent/`** — `TrustRailAgent`, the orchestration loop.
+- **`agent/`** - `TrustRailAgent`, the orchestration loop.
 
 ## Trust primitives (original, self-contained)
 
 Two small primitives do the heavy lifting and are implemented natively in this
 repo — no external trust dependencies, fully exercised by tests:
 
-- **`src/attestation/postAttestation.ts`** → `PostAttestation` / `PostAttestationGuard` — a signed `allow` verdict bound to the exact value posted (SHA-256 over a canonical `PostIntent`). The intent hash is what we store on-chain as `attestation_hash`, so a value can be matched to the signed verdict that authorized it.
-- **`src/sanctions/screener.ts`** → `OracleSanctionScreener` — real-time, TTL-cached, **fail-closed** counterparty screening before any post.
+- **`src/attestation/postAttestation.ts`** → `PostAttestation` / `PostAttestationGuard` a signed `allow` verdict bound to the exact value posted (SHA-256 over a canonical `PostIntent`). The intent hash is what we store on-chain as `attestation_hash`, so a value can be matched to the signed verdict that authorized it.
+- **`src/sanctions/screener.ts`** → `OracleSanctionScreener` real-time, TTL-cached, **fail-closed** counterparty screening before any post.
 
 The design lineage is Veridex's production agent stack; the implementations here
 are original and Trust-Rail-scoped, so the repo builds anywhere with zero private
@@ -84,7 +84,7 @@ bun run demo          # full pipeline, offline against MockCasperRpc
 
 ```
 === 2. Run the oracle pipeline (fetch -> assess -> screen -> attest -> post) ===
-   - risk: post (0) — within band, deviation and freshness nominal
+   - risk: post (0) within band, deviation and freshness nominal
    - sanctions: clear (oracle[static-denylist])
    - posted: mock0000...
    posted value: 5310000 (5.31% x 1e6)
@@ -97,7 +97,7 @@ Full step-by-step in **[DEPLOY.md](DEPLOY.md)**. The short version:
 
 ```bash
 # contracts compile + test on the Odra MockVM (nightly toolchain, pinned via
-# contracts/rust-toolchain.toml — rustup installs it automatically)
+# contracts/rust-toolchain.toml rustup installs it automatically)
 cd contracts && cargo odra test          # 9 passing
 cargo odra build                         # -> wasm/*.wasm
 
