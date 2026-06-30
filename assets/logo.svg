@@ -1,0 +1,32 @@
+<svg width="760" height="220" viewBox="0 0 760 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trust Rail — autonomous RWA oracle agents on Casper">
+  <defs>
+    <linearGradient id="tr-badge" x1="44" y1="44" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF4350"/>
+      <stop offset="1" stop-color="#B11226"/>
+    </linearGradient>
+    <linearGradient id="tr-rail" x1="78" y1="150" x2="166" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFE7D6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark -->
+  <g transform="translate(28,40)">
+    <rect x="0" y="0" width="140" height="140" rx="35" fill="url(#tr-badge)"/>
+    <rect x="0.5" y="0.5" width="139" height="139" rx="34.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.16"/>
+    <path d="M33 90 L62 104 L110 41" stroke="url(#tr-rail)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="33" cy="90" r="5.5" fill="#7E0C18"/>
+    <circle cx="62" cy="104" r="5.5" fill="#7E0C18"/>
+    <circle cx="110" cy="41" r="12" fill="#B11226" stroke="#FFFFFF" stroke-width="4.6"/>
+    <path d="M105 41.5 L109 46 L116 37.5" stroke="#FFFFFF" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="196" y="112" font-family="Inter, 'Segoe UI', system-ui, -apple-system, Arial, sans-serif" font-size="62" font-weight="800" letter-spacing="-1.5" fill="#E11D2A">Trust<tspan fill="#9A1320"> Rail</tspan></text>
+
+  <!-- Tagline -->
+  <text x="198" y="150" font-family="Inter, 'Segoe UI', system-ui, -apple-system, Arial, sans-serif" font-size="22" font-weight="500" letter-spacing="0.2" fill="#8A94A6">Autonomous RWA oracle agents on Casper</text>
+
+  <!-- Tech chips -->
+  <text x="198" y="184" font-family="'SFMono-Regular', ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace" font-size="14.5" letter-spacing="1.5" fill="#B11226" fill-opacity="0.85">x402 · ODRA · ERC-8004 IDENTITY · CSPR.CLOUD</text>
+</svg>

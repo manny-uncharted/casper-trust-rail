@@ -1,6 +1,10 @@
-# Trust Rail — Autonomous RWA Oracle Agents on Casper
+<p align="center">
+  <img src="./assets/logo.svg" alt="Trust Rail — Autonomous RWA oracle agents on Casper" width="620"/>
+</p>
 
-> Casper Agentic Buildathon 2026 entry. **`@veridex/casper-trust-rail`**
+<h1 align="center">Trust Rail — Autonomous RWA Oracle Agents on Casper</h1>
+
+> Casper Agentic Buildathon 2026 entry. **`casper-trust-rail`**
 
 Casper's manifest calls it _"the trust layer for the agent economy."_ Trust Rail is that thesis made real: an **autonomous AI agent that publishes verified real-world-asset data on-chain to Casper** — with a **verifiable on-chain identity**, an **accuracy-based reputation** that the chain enforces, **sanctions screening** and a **cryptographic attestation** on every post, and **pay-per-read settlement over Casper-native x402**.
 
