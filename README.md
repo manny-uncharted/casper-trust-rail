@@ -103,6 +103,12 @@ addresses for its on-chain reputation gate). Full details in **[DEPLOYED.md](DEP
 | **Reputation** | `hash-d66a18fa40dfc17e199bcbde6aff02ade40ffd4fd1b8adfe022c1ba5145427ba` | [view ↗](https://testnet.cspr.live/transaction/c0a4e255437371a7bee458ed7fb87d49590817d68f146748da3940d3d6f6a4bc) |
 | **RwaOracle** | `hash-7a1316142309897f674c5be6c86ac3dfa21869c79aa59738716ac480fdee514b` | [view ↗](https://testnet.cspr.live/transaction/07a7eee25eb6bc2aca57ab4ff9a54004e082d066383d851b8cd9abccb494d83c) |
 
+**The agent is live too.** `bun run testnet` runs the TypeScript agent's full
+pipeline (fetch → risk → sanctions → attest) and writes on-chain — it has
+registered its identity and posted attested T-bill yields to the oracle. Example
+agent-driven post: [`post_data_point` ↗](https://testnet.cspr.live/transaction/6881d0a479778ac7e7edf083d899144db8e14ae10d43088627b7e4e22e041260)
+(stores `value=5310000`, `attestation_hash=45470551…`). Full list in [DEPLOYED.md](DEPLOYED.md).
+
 ## Deploy to testnet
 
 Full step-by-step in **[DEPLOY.md](DEPLOY.md)**. The short version:

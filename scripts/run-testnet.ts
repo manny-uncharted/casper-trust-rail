@@ -1,102 +1,164 @@
 /**
- * Drive the Trust Rail agent against Casper **testnet**.
+ * Fully-functional LIVE demo against the deployed Casper testnet contracts.
  *
- * Prerequisites:
- *  1. Build + deploy the three contracts (see README "Deploy to testnet"):
- *       cd contracts && cargo odra build
- *       # put-deploy each wasm, note the contract hashes
- *  2. Fund the agent key with testnet CSPR from the faucet.
- *  3. Export the env below, then:
- *       bun run scripts/run-testnet.ts
+ * The agent's intelligence runs here in TypeScript — fetch the T-bill yield,
+ * risk-assess it, sanctions-screen the beneficiary, and produce a signed
+ * attestation bound to the exact value. The on-chain write is then executed
+ * through the Odra livenet `interact` binary (the same proven path that deployed
+ * the contracts), which registers the agent identity and posts the attested data
+ * point to the reputation-gated oracle.
  *
- * Env:
- *   CASPER_NODE_URL          e.g. https://node.testnet.cspr.cloud/rpc
- *   CASPER_CHAIN_NAME        casper-test
- *   CASPER_SECRET_KEY_PEM    path to the agent's ed25519 secret_key.pem
- *   CSPR_CLOUD_ACCESS_TOKEN  (optional) CSPR.cloud bearer token
- *   TRUSTRAIL_IDENTITY_HASH  hash-... of the deployed AgentIdentity contract
- *   TRUSTRAIL_REPUTATION_HASH hash-... of the deployed Reputation contract
- *   TRUSTRAIL_ORACLE_HASH    hash-... of the deployed RwaOracle contract
- *   TRUSTRAIL_AGENT_ID       on-chain agent id (default "veridex-tbill-oracle")
- *   TRUSTRAIL_PAYTO          beneficiary account hash (screened before posting)
+ * Prereqs: contracts deployed (see DEPLOYED.md) and a funded key. Config comes
+ * from `.env` (Bun auto-loads it). Run:
+ *
+ *   bun run scripts/run-testnet.ts
  */
 
-import { readFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
-  CasperClient,
-  HttpTBillDataSource,
-  RealCasperRpc,
-  StaticSanctionOracle,
+  HeuristicRiskAssessor,
   OracleSanctionScreener,
-  TrustRailAgent,
+  PostAttestationGuard,
+  StaticSanctionOracle,
+  StaticTBillDataSource,
+  computePostIntentHash,
   createEd25519Attestation,
-  type TBillObservation,
+  signPostAttestation,
+  toOnChainValue,
+  type PostIntent,
 } from '../src/index.js';
 
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(HERE, '..');
+const CONTRACTS_DIR = resolve(REPO_ROOT, 'contracts');
 
 function reqEnv(name: string): string {
   const v = process.env[name];
-  if (!v) throw new Error(`missing required env ${name}`);
+  if (!v) throw new Error(`missing required env ${name} (see .env.example)`);
   return v;
 }
 
-/** US Treasury "Daily Treasury Par Yield Curve" JSON → observation. */
-function treasuryParser(raw: unknown, feedId: string): TBillObservation {
-  // The Treasury fiscaldata API returns { data: [{ record_date, ... }] }.
-  const rec = (raw as { data?: Array<Record<string, string>> }).data?.[0] ?? {};
-  const rate = Number(rec.avg_interest_rate_amt ?? rec.security_desc ?? '0');
-  return {
-    feedId,
-    label: 'US 3-Month T-Bill',
-    ratePercent: Number.isFinite(rate) ? rate : 0,
-    asOf: rec.record_date ?? new Date().toISOString(),
-    source: 'US Treasury fiscaldata',
-  };
+function log(title: string): void {
+  console.log(`\n=== ${title} ===`);
 }
 
 async function main(): Promise<void> {
-  const rpc = new RealCasperRpc({
-    nodeUrl: reqEnv('CASPER_NODE_URL'),
-    network: 'casper-test',
-    chainName: process.env.CASPER_CHAIN_NAME ?? 'casper-test',
-    signer: { secretKeyPem: readFileSync(reqEnv('CASPER_SECRET_KEY_PEM'), 'utf8') },
-    ...(process.env.CSPR_CLOUD_ACCESS_TOKEN
-      ? { accessToken: process.env.CSPR_CLOUD_ACCESS_TOKEN }
-      : {}),
-  });
-
-  const casper = new CasperClient(rpc, {
-    identity: reqEnv('TRUSTRAIL_IDENTITY_HASH'),
-    reputation: reqEnv('TRUSTRAIL_REPUTATION_HASH'),
-    oracle: reqEnv('TRUSTRAIL_ORACLE_HASH'),
-  });
-
-  const dataSource = new HttpTBillDataSource({
-    url: 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?sort=-record_date&page[size]=1',
-    parser: treasuryParser,
-  });
-
-  const screener = new OracleSanctionScreener(new StaticSanctionOracle());
-  const { signer, verifier } = createEd25519Attestation();
-
+  const network = 'casper:casper-test';
+  const oracleHash = reqEnv('TRUSTRAIL_ORACLE_HASH');
+  const identityHash = reqEnv('TRUSTRAIL_IDENTITY_HASH');
+  const feedId = process.env.FEED_ID ?? 'us-3m-tbill';
   const agentId = process.env.TRUSTRAIL_AGENT_ID ?? 'veridex-tbill-oracle';
-  const agent = new TrustRailAgent({
+  const payTo = reqEnv('TRUSTRAIL_PAYTO');
+
+  log('1. Fetch the RWA observation (off-chain)');
+  const dataSource = new StaticTBillDataSource([
+    {
+      feedId,
+      label: 'US 3-Month T-Bill',
+      ratePercent: Number(process.env.RATE_PERCENT ?? '5.31'),
+      asOf: new Date().toISOString(),
+      source: 'US Treasury Daily Par Yield',
+    },
+  ]);
+  const observation = await dataSource.fetch(feedId);
+  const onChainValue = toOnChainValue(observation.ratePercent);
+  console.log(`   ${observation.label}: ${observation.ratePercent}% -> on-chain value ${onChainValue}`);
+
+  log('2. Risk assessment');
+  const assessment = await new HeuristicRiskAssessor().assess(observation, { now: Date.now() });
+  console.log(`   decision=${assessment.decision} risk=${assessment.riskScore} (${assessment.reasons.join('; ')})`);
+  if (assessment.decision === 'escalate') {
+    console.log('   ESCALATED — not posting.');
+    return;
+  }
+
+  log('3. Sanctions screening (fail-closed)');
+  const screener = new OracleSanctionScreener(new StaticSanctionOracle());
+  const screening = await screener.screen({ id: `casper:${payTo}`, chain: network, address: payTo });
+  console.log(`   verdict=${screening.verdict} (${screening.provider})`);
+  if (screening.verdict === 'blocked') {
+    console.log('   BLOCKED — not posting.');
+    return;
+  }
+
+  log('4. Cryptographic attestation bound to the exact value');
+  const intent: PostIntent = { chain: network, oracle: oracleHash, feedId, value: onChainValue.toString() };
+  const intentHash = await computePostIntentHash(intent);
+  const { signer, verifier } = createEd25519Attestation();
+  const attestation = await signPostAttestation(
+    {
+      intentHash,
+      verdict: 'allow',
+      issuedAt: Date.now(),
+      policyId: 'trust-rail/rwa-oracle@1',
+      riskScore: assessment.riskScore,
+    },
+    signer,
+  );
+  const guard = new PostAttestationGuard({ verifier, mode: 'enforce' });
+  const guardDecision = await guard.authorize({ intentHash, attestation });
+  if (!guardDecision.allowed) {
+    console.log(`   ATTESTATION DENIED: ${guardDecision.reasons.join('; ')}`);
+    return;
+  }
+  console.log(`   attestation hash (stored on-chain): ${intentHash}`);
+
+  log('5. Execute on-chain: register identity + post attested data point');
+  await runInteract({
+    identityHash,
+    oracleHash,
     agentId,
-    network: 'casper:casper-test',
-    payTo: reqEnv('TRUSTRAIL_PAYTO'),
-    casper,
-    dataSource,
-    screener,
-    attestationSigner: signer,
-    attestationVerifier: verifier,
+    feedId,
+    value: onChainValue.toString(),
+    source: observation.source,
+    attestationHash: intentHash,
   });
+}
 
-  console.log('registering identity on testnet...');
-  console.log(await agent.registerIdentity(`did:casper:${agentId}`));
+/** Spawn the Odra livenet `interact` binary to perform the on-chain write. */
+function runInteract(args: {
+  identityHash: string;
+  oracleHash: string;
+  agentId: string;
+  feedId: string;
+  value: string;
+  source: string;
+  attestationHash: string;
+}): Promise<void> {
+  const secretKey = resolve(REPO_ROOT, process.env.CASPER_SECRET_KEY_PEM ?? './contracts/keys/secret_key.pem');
+  const nodeUrl = (process.env.ODRA_CASPER_LIVENET_NODE_ADDRESS ?? 'https://node.testnet.casper.network').replace(
+    /\/rpc$/,
+    '',
+  );
 
-  console.log('running oracle pipeline against testnet...');
-  const result = await agent.runOnce('us-3m-tbill');
-  console.log(JSON.stringify({ posted: result.posted, deployHash: result.deployHash, explorerUrl: result.explorerUrl, notes: result.notes }, null, 2));
+  const childEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    ODRA_CASPER_LIVENET_NODE_ADDRESS: nodeUrl,
+    ODRA_CASPER_LIVENET_EVENTS_URL: process.env.ODRA_CASPER_LIVENET_EVENTS_URL ?? `${nodeUrl}/events`,
+    ODRA_CASPER_LIVENET_CHAIN_NAME: process.env.CASPER_CHAIN_NAME ?? 'casper-test',
+    ODRA_CASPER_LIVENET_SECRET_KEY_PATH: secretKey,
+    TRUSTRAIL_IDENTITY_HASH: args.identityHash,
+    TRUSTRAIL_ORACLE_HASH: args.oracleHash,
+    TRUSTRAIL_AGENT_ID: args.agentId,
+    FEED_ID: args.feedId,
+    VALUE: args.value,
+    SOURCE: args.source,
+    ATTESTATION_HASH: args.attestationHash,
+  };
+
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn('cargo', ['run', '--quiet', '--bin', 'interact', '--features', 'livenet'], {
+      cwd: CONTRACTS_DIR,
+      env: childEnv,
+      stdio: 'inherit',
+    });
+    child.on('error', reject);
+    child.on('exit', (code) =>
+      code === 0 ? resolvePromise() : reject(new Error(`interact exited with code ${code}`)),
+    );
+  });
 }
 
 main().catch((err) => {

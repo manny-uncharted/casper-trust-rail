@@ -37,6 +37,12 @@ path = "bin/deploy.rs"
 required-features = ["livenet"]
 test = false
 
+[[bin]]
+name = "interact"
+path = "bin/interact.rs"
+required-features = ["livenet"]
+test = false
+
 [profile.release]
 codegen-units = 1
 lto = true

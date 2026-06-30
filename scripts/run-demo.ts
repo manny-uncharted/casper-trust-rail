@@ -23,11 +23,13 @@ import {
 const AGENT_ID = 'veridex-tbill-oracle';
 
 async function main(): Promise<void> {
+  // Offline demo (MockCasperRpc). Addresses are the real testnet deployment
+  // (see DEPLOYED.md); for a live on-chain run use `bun run testnet`.
   const rpc = new MockCasperRpc({ network: 'casper-test' });
   const casper = new CasperClient(rpc, {
-    identity: 'hash-identity-demo',
-    reputation: 'hash-reputation-demo',
-    oracle: 'hash-oracle-demo',
+    identity: 'hash-50de6c7535ef4196db67904a7c5a6fa5a1d56199e6100edd8c7b042fdf0b03de',
+    reputation: 'hash-d66a18fa40dfc17e199bcbde6aff02ade40ffd4fd1b8adfe022c1ba5145427ba',
+    oracle: 'hash-7a1316142309897f674c5be6c86ac3dfa21869c79aa59738716ac480fdee514b',
   });
 
   const dataSource = new StaticTBillDataSource([
