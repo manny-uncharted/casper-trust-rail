@@ -11,9 +11,11 @@
         "vitest": "^1.0.0",
       },
       "peerDependencies": {
+        "@google/genai": "latest",
         "casper-js-sdk": "^5.0.0",
       },
       "optionalPeers": [
+        "@google/genai",
         "casper-js-sdk",
       ],
     },

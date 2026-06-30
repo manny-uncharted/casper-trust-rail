@@ -19,15 +19,19 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   HeuristicRiskAssessor,
+  LlmRiskAssessor,
   OracleSanctionScreener,
   PostAttestationGuard,
   StaticSanctionOracle,
   StaticTBillDataSource,
   computePostIntentHash,
   createEd25519Attestation,
+  createGeminiComplete,
+  geminiAvailable,
   signPostAttestation,
   toOnChainValue,
   type PostIntent,
+  type RiskAssessor,
 } from '../src/index.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -67,8 +71,13 @@ async function main(): Promise<void> {
   console.log(`   ${observation.label}: ${observation.ratePercent}% -> on-chain value ${onChainValue}`);
 
   log('2. Risk assessment');
-  const assessment = await new HeuristicRiskAssessor().assess(observation, { now: Date.now() });
+  const riskAssessor: RiskAssessor = geminiAvailable()
+    ? new LlmRiskAssessor(createGeminiComplete())
+    : new HeuristicRiskAssessor();
+  console.log(`   brain: ${geminiAvailable() ? 'Gemini (LLM) over heuristic floor' : 'heuristic (set GEMINI_API_KEY for the LLM)'}`);
+  const assessment = await riskAssessor.assess(observation, { now: Date.now() });
   console.log(`   decision=${assessment.decision} risk=${assessment.riskScore} (${assessment.reasons.join('; ')})`);
+  if (assessment.rationale) console.log(`   rationale: ${assessment.rationale}`);
   if (assessment.decision === 'escalate') {
     console.log('   ESCALATED — not posting.');
     return;

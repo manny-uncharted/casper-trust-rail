@@ -11,12 +11,17 @@
 
 import {
   CasperClient,
+  HeuristicRiskAssessor,
+  LlmRiskAssessor,
   MockCasperRpc,
   StaticSanctionOracle,
   OracleSanctionScreener,
   StaticTBillDataSource,
   TrustRailAgent,
   createEd25519Attestation,
+  createGeminiComplete,
+  geminiAvailable,
+  type RiskAssessor,
 } from '../src/index.js';
 
 
@@ -47,6 +52,15 @@ async function main(): Promise<void> {
   );
   const { signer, verifier } = createEd25519Attestation();
 
+  // The agent's risk brain: Gemini (LLM) over a deterministic heuristic floor
+  // when GEMINI_API_KEY is set, otherwise the heuristic alone.
+  const riskAssessor: RiskAssessor = geminiAvailable()
+    ? new LlmRiskAssessor(createGeminiComplete())
+    : new HeuristicRiskAssessor();
+  console.log(
+    `risk brain: ${geminiAvailable() ? 'Gemini (LLM) + heuristic floor' : 'heuristic (set GEMINI_API_KEY to enable Gemini)'}`,
+  );
+
   const agent = new TrustRailAgent({
     agentId: AGENT_ID,
     network: 'casper:casper-test',
@@ -54,6 +68,7 @@ async function main(): Promise<void> {
     casper,
     dataSource,
     screener,
+    riskAssessor,
     attestationSigner: signer,
     attestationVerifier: verifier,
   });

@@ -50,6 +50,9 @@ export {
 // Oracle domain
 export * from './oracle/TBillDataSource.js';
 export * from './oracle/RiskAssessor.js';
+
+// LLM (Gemini) — optional, powers the agent's risk-assessment brain
+export { createGeminiComplete, geminiAvailable, type GeminiOptions } from './llm/gemini.js';
 export {
   ReputationTracker,
   type ReputationTrackerOptions,
