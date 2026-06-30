@@ -105,7 +105,9 @@ cd contracts && cargo odra test          # 9 passing
 cargo odra build                         # -> wasm/*.wasm
 
 # deploy + wire all three contracts in one shot (prints the contract hashes)
-export ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.cspr.cloud/rpc
+# public no-auth node; NODE_ADDRESS has no /rpc (the client appends it)
+export ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.casper.network
+export ODRA_CASPER_LIVENET_EVENTS_URL=https://node.testnet.casper.network/events
 export ODRA_CASPER_LIVENET_CHAIN_NAME=casper-test
 export ODRA_CASPER_LIVENET_SECRET_KEY_PATH=./keys/secret_key.pem   # funded
 cargo run --bin deploy --features livenet

@@ -52,11 +52,19 @@ RwaOracle with their addresses and the reputation floor, printing the hashes.
 
 ```bash
 cd contracts
-export ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.cspr.cloud/rpc
+# NOTE: NODE_ADDRESS is the base host WITHOUT /rpc (the client appends it).
+# EVENTS_URL is the node's SSE stream — Odra watches it to confirm each deploy.
+export ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.casper.network
+export ODRA_CASPER_LIVENET_EVENTS_URL=https://node.testnet.casper.network/events
 export ODRA_CASPER_LIVENET_CHAIN_NAME=casper-test
 export ODRA_CASPER_LIVENET_SECRET_KEY_PATH=./keys/secret_key.pem
 cargo run --bin deploy --features livenet
 ```
+
+> The public node above is no-auth. To use CSPR.cloud instead, set
+> `ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.cspr.cloud`,
+> `ODRA_CASPER_LIVENET_EVENTS_URL=https://streaming.testnet.cspr.cloud/events`,
+> and `export CSPR_CLOUD_AUTH_TOKEN=<your token>`.
 
 It prints:
 
@@ -67,6 +75,7 @@ TRUSTRAIL_ORACLE_HASH=hash-...
 ```
 
 Confirm each on the explorer: `https://testnet.cspr.live/contract/<hash>`.
+The current live deployment's addresses are in [DEPLOYED.md](DEPLOYED.md).
 
 ## 4. Register the agent + post one data point
 
