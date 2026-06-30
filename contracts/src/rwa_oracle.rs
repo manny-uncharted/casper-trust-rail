@@ -18,6 +18,7 @@
 use crate::agent_identity::AgentIdentityContractRef;
 use crate::reputation::ReputationContractRef;
 use odra::prelude::*;
+use odra::ContractRef;
 
 /// A single published data point.
 #[odra::odra_type]

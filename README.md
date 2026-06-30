@@ -89,27 +89,30 @@ bun run demo          # full pipeline, offline against MockCasperRpc
 
 ## Deploy to testnet
 
+Full step-by-step in **[DEPLOY.md](DEPLOY.md)**. The short version:
+
 ```bash
-# 1. Build + test the contracts (needs the Rust toolchain + cargo-odra)
-cargo install cargo-odra
-cd contracts && cargo odra test && cargo odra build      # -> wasm/*.wasm
+# contracts compile + test on the Odra MockVM (nightly toolchain, pinned via
+# contracts/rust-toolchain.toml — rustup installs it automatically)
+cd contracts && cargo odra test          # 9 passing
+cargo odra build                         # -> wasm/*.wasm
 
-# 2. Deploy each wasm and note the contract hashes (casper-client put-deploy
-#    or cargo-odra livenet). Wire AgentIdentity + Reputation into RwaOracle's init.
+# deploy + wire all three contracts in one shot (prints the contract hashes)
+export ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.cspr.cloud/rpc
+export ODRA_CASPER_LIVENET_CHAIN_NAME=casper-test
+export ODRA_CASPER_LIVENET_SECRET_KEY_PATH=./keys/secret_key.pem   # funded
+cargo run --bin deploy --features livenet
 
-# 3. Fund the agent key from the testnet faucet, then drive the agent:
-export CASPER_NODE_URL=https://node.testnet.cspr.cloud/rpc
-export CASPER_SECRET_KEY_PEM=./keys/secret_key.pem
-export TRUSTRAIL_IDENTITY_HASH=hash-...
-export TRUSTRAIL_REPUTATION_HASH=hash-...
-export TRUSTRAIL_ORACLE_HASH=hash-...
-export TRUSTRAIL_PAYTO=account-hash-...
-bun add casper-js-sdk
-bun run testnet        # registers identity + posts one attested data point on testnet
+# then drive the agent (registers identity + posts one attested data point)
+cd .. && cp .env.example .env            # fill in the printed hashes
+bun add casper-js-sdk && bun run testnet
 ```
 
 The single `post_data_point` deploy satisfies the buildathon's
 **transaction-producing on-chain component** requirement.
+
+> Contracts require a **Rust nightly** toolchain (Odra's proc-macros use nightly
+> features); `contracts/rust-toolchain.toml` pins it so a clone just works.
 
 ## x402 pay-per-read
 

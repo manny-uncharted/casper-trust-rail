@@ -6,15 +6,40 @@ description = "Trust Rail on-chain contracts for Casper: agent identity, reputat
 license = "MIT"
 
 [dependencies]
-odra = { version = "1.4.0", default-features = false }
+odra = { version = "2.8.2", features = [], default-features = false }
+odra-casper-livenet-env = { version = "2.8.2", optional = true }
 
 [dev-dependencies]
-odra-test = "1.4.0"
+odra-test = { version = "2.8.2", features = [], default-features = false }
 
-[lib]
-crate-type = ["rlib"]
-doctest = false
+[build-dependencies]
+odra-build = { version = "2.8.2", features = [], default-features = false }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+odra-build = { version = "2.8.2", features = [], default-features = false }
+
+[features]
+livenet = ["odra-casper-livenet-env"]
+
+[[bin]]
+name = "casper_trust_rail_contracts_build_contract"
+path = "bin/build_contract.rs"
+test = false
+
+[[bin]]
+name = "casper_trust_rail_contracts_build_schema"
+path = "bin/build_schema.rs"
+test = false
+
+[[bin]]
+name = "deploy"
+path = "bin/deploy.rs"
+required-features = ["livenet"]
+test = false
 
 [profile.release]
 codegen-units = 1
 lto = true
+
+[profile.dev.package."*"]
+opt-level = 3

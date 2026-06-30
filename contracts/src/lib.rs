@@ -12,14 +12,16 @@
 //!   exposes them to downstream DeFi consumers (with a paid `consume` path that
 //!   pairs with Casper-native x402).
 //!
-//! Targets Odra 1.4+ (`cargo odra build` / `cargo odra test`).
+//! Targets Odra 2.8+ (`cargo odra build` / `cargo odra test`).
 
 #![cfg_attr(not(test), no_std)]
+#![cfg_attr(not(test), no_main)]
+extern crate alloc;
 
 mod agent_identity;
 mod reputation;
 mod rwa_oracle;
 
-pub use agent_identity::{AgentIdentity, AgentIdentityInitArgs, IdentityError};
-pub use reputation::{Reputation, ReputationInitArgs, ReputationError};
+pub use agent_identity::{AgentIdentity, IdentityError};
+pub use reputation::{Reputation, ReputationError, ReputationInitArgs};
 pub use rwa_oracle::{FeedPoint, OracleError, RwaOracle, RwaOracleInitArgs};

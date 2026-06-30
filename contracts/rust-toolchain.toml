@@ -1,0 +1,7 @@
+# Odra's proc-macros use nightly-only features (box_patterns, result_flattening),
+# so the contracts must be built with a nightly toolchain. rustup reads this file
+# automatically and installs the channel + wasm target on first build.
+[toolchain]
+channel = "nightly"
+targets = ["wasm32-unknown-unknown"]
+components = ["rustfmt", "clippy"]
