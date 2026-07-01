@@ -34,6 +34,7 @@ runs the fetch → risk → sanctions → attest pipeline, then writes on-chain)
 | `register` (agent identity `veridex-tbill-oracle`) | https://testnet.cspr.live/transaction/d3a2ab1366b42732f28c33bb22aa71330738f93843e07ef434570af55680cf02 |
 | `post_data_point` (attested 5.31% T-bill yield) | https://testnet.cspr.live/transaction/e2b78e52d5e3128f0cef9f845e9839a42425e5421db57b6b39b94ed98bd01284 |
 | `post_data_point` (agent-driven, `bun run testnet`) | https://testnet.cspr.live/transaction/6881d0a479778ac7e7edf083d899144db8e14ae10d43088627b7e4e22e041260 |
+| `post_data_point` (**Gemini** risk brain, `bun run testnet`) | https://testnet.cspr.live/transaction/1ad8660a8c86f2a79d2fc7a02a7e0fccad526b4149100f10ea60f5c536a5c078 |
 
 On-chain state read back from the oracle: `feeds["us-3m-tbill"] = { value: 5310000 (5.31%), agent: "veridex-tbill-oracle", attestation_hash: "45470551136d7081c6ab4c13e31a235aa9efec6bd034ecb699af899e0285a806" }` — the stored `attestation_hash` is the SHA-256 of the agent's signed policy verdict.
 
